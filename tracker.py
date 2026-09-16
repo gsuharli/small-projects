@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # Target product URL
-URL = "https://example.com/product-page"
+URL = "https://www.costco.com/p/-/cuckoo-6-cup-twin-pressure-rice-cooker/4000180372"
 
 # Browser header to prevent bot blocks
 HEADERS = {
@@ -26,8 +26,8 @@ def get_price():
 
   # Replace with your item's specific tag and class or ID:
   # Inspect the price element in your browser to find its selector.
-  price_element = soup.find("span", class_="a-price-whole") or soup.find(
-      id="priceblock_ourprice"
+  price_element = soup.find("span", class_="MuiTypography-root MuiTypography-bodyCopy mui-cqdqae") or soup.find(
+      id="Text_single-price-whole-value"
   )
 
   if price_element:
