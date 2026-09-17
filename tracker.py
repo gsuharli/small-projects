@@ -3,7 +3,6 @@ import smtplib
 from email.message import EmailMessage
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth
 
 URL = "https://www.costco.com/p/-/cuckoo-6-cup-twin-pressure-rice-cooker/4000180372"
 
@@ -13,7 +12,7 @@ def get_price():
     browser = p.chromium.launch(
         headless=True,
         args=[
-            "--disable-http2",  # Fixes ERR_HTTP2_PROTOCOL_ERROR
+            "--disable-http2",
             "--disable-blink-features=AutomationControlled",
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -22,21 +21,35 @@ def get_price():
     )
 
     context = browser.new_context(
-      user_agent=(
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,"
-          " like Gecko) Chrome/124.0.0.0 Safari/537.36"
-      ),
-      viewport={"width": 1920, "height": 1080},
-      locale="en-US",
-  )
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        ),
+        viewport={"width": 1920, "height": 1080},
+        locale="en-US",
+    )
 
     page = context.new_page()
 
-    # Apply comprehensive stealth evasions
-    stealth(page)
+    # Native stealth evasion scripts:
+    page.add_init_script("""
+            // Overwrite the `languages` property to use standard English
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en']
+            });
+            // Overwrite the `plugins` property to simulate installed plugins
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5]
+            });
+            // Pass the Chrome runtime test
+            window.chrome = { runtime: {} };
+            // Hide webdriver flag
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+        """)
 
     print("Navigating to Costco URL...")
-    # Use domcontentloaded instead of networkidle to avoid hanging connections
     page.goto(URL, wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(5000)
 
@@ -58,7 +71,6 @@ def get_price():
   if "Sign in to see price" in soup.get_text():
     return "Member-only price: Sign in required on Costco"
 
-  # Fallback: check page title to verify if Akamai served an Access Denied splash
   if "Access Denied" in soup.get_text():
     return "Access Denied by Costco Akamai Shield"
 
