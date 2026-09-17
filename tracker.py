@@ -3,50 +3,48 @@ import smtplib
 from email.message import EmailMessage
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync
 
 URL = "https://www.costco.com/p/-/cuckoo-6-cup-twin-pressure-rice-cooker/4000180372"
 
 
 def get_price():
   with sync_playwright() as p:
-    # Launch Chromium with args to avoid common bot detection flags
     browser = p.chromium.launch(
         headless=True,
         args=[
+            "--disable-http2",  # Fixes ERR_HTTP2_PROTOCOL_ERROR
             "--disable-blink-features=AutomationControlled",
             "--no-sandbox",
             "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
         ],
     )
 
     context = browser.new_context(
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            " (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        ),
-        viewport={"width": 1920, "height": 1080},
-        locale="en-US",
-    )
+      user_agent=(
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,"
+          " like Gecko) Chrome/124.0.0.0 Safari/537.36"
+      ),
+      viewport={"width": 1920, "height": 1080},
+      locale="en-US",
+  )
 
     page = context.new_page()
 
-    # Mask the navigator.webdriver property
-    page.add_init_script(
-        "Object.defineProperty(navigator, 'webdriver', {get: () =>"
-        " undefined})"
-    )
+    # Apply comprehensive stealth evasions
+    stealth_sync(page)
 
     print("Navigating to Costco URL...")
-    # Wait until network activity dies down so the dynamic price loads
-    page.goto(URL, wait_until="networkidle", timeout=60000)
-    page.wait_for_timeout(4000)
+    # Use domcontentloaded instead of networkidle to avoid hanging connections
+    page.goto(URL, wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_timeout(5000)
 
     html_content = page.content()
     browser.close()
 
   soup = BeautifulSoup(html_content, "html.parser")
 
-  # Costco price selectors
   price_element = (
       soup.find("span", {"automation-id": "totalPriceOutput"})
       or soup.find("div", id="pull-right-price")
@@ -57,9 +55,12 @@ def get_price():
   if price_element:
     return price_element.get_text(strip=True)
 
-  # Check if Costco requires member sign-in to view price
   if "Sign in to see price" in soup.get_text():
     return "Member-only price: Sign in required on Costco"
+
+  # Fallback: check page title to verify if Akamai served an Access Denied splash
+  if "Access Denied" in soup.get_text():
+    return "Access Denied by Costco Akamai Shield"
 
   return "Price tag not found"
 
