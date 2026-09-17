@@ -2,9 +2,7 @@ name: Daily Price Tracker
 
 on:
   schedule:
-    # Runs at 14:00 UTC daily (convert to your local timezone)
     - cron: '0 14 * * *'
-  # Allows you to test-run manually via the GitHub Actions tab
   workflow_dispatch:
 
 jobs:
@@ -21,7 +19,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
 
       - name: Execute price script
         env:
