@@ -3,7 +3,7 @@ import smtplib
 from email.message import EmailMessage
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
+from playwright_stealth import stealth
 
 URL = "https://www.costco.com/p/-/cuckoo-6-cup-twin-pressure-rice-cooker/4000180372"
 
@@ -33,7 +33,7 @@ def get_price():
     page = context.new_page()
 
     # Apply comprehensive stealth evasions
-    stealth_sync(page)
+    stealth(page)
 
     print("Navigating to Costco URL...")
     # Use domcontentloaded instead of networkidle to avoid hanging connections
