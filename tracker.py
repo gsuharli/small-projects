@@ -1,17 +1,15 @@
 import os
 import smtplib
 from email.message import EmailMessage
-import requests
 from bs4 import BeautifulSoup
+import requests
 
-# Target product URL
-URL = "https://www.costco.com/p/-/cuckoo-6-cup-twin-pressure-rice-cooker/4000180372"
+URL = "https://example.com/product-page"
 
-# Browser header to prevent bot blocks
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        " (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,"
+        " like Gecko) Chrome/124.0.0.0 Safari/537.36"
     ),
     "Accept": (
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
@@ -42,10 +40,8 @@ def get_price():
 
   soup = BeautifulSoup(response.text, "html.parser")
 
-  # Replace with your item's specific tag and class or ID:
-  # Inspect the price element in your browser to find its selector.
-  price_element = soup.find("span", class_="MuiTypography-root MuiTypography-bodyCopy mui-cqdqae") or soup.find(
-      id="Text_single-price-whole-value"
+  price_element = soup.find("span", class_="a-price-whole") or soup.find(
+      id="priceblock_ourprice"
   )
 
   if price_element:
