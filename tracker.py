@@ -34,9 +34,10 @@ HEADERS = {
 
 
 def get_price():
-  response = requests.get(session = requests.Session()
-session.headers.update(HEADERS)
-response = session.get(URL, timeout=15))
+  session = requests.Session()
+  session.headers.update(HEADERS)
+
+  response = session.get(URL, timeout=15)
   response.raise_for_status()
 
   soup = BeautifulSoup(response.text, "html.parser")
