@@ -89,26 +89,3 @@ if __name__ == "__main__":
   current_price = get_price()
   print(f"Extracted Price: {current_price}")
   send_email(current_price)
-
-
-def send_email(price):
-  sender_email = os.environ.get("SENDER_EMAIL")
-  sender_password = os.environ.get("SENDER_PASSWORD")
-  recipient_email = os.environ.get("RECIPIENT_EMAIL")
-
-  msg = EmailMessage()
-  msg["Subject"] = f"Daily Price Update: {price}"
-  msg["From"] = sender_email
-  msg["To"] = recipient_email
-  msg.set_content(
-      f"Current tracked price: {price}\n\nCheck the product here: {URL}"
-  )
-
-  with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-    server.login(sender_email, sender_password)
-    server.send_message(msg)
-
-
-if __name__ == "__main__":
-  current_price = get_price()
-  send_email(current_price)
